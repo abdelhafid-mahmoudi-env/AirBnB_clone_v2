@@ -5,6 +5,10 @@ from os import getenv
 from models.base_model import Base
 from models.city import City
 from models.state import State
+from models.user import User
+from models.place import Place
+from models.amenity import Amenity
+from models.review import Review
 
 
 class DBStorage:
@@ -53,3 +57,4 @@ class DBStorage:
         Base.metadata.create_all(self.__engine)
         self.__session = scoped_session(sessionmaker(bind=self.__engine,
                                                       expire_on_commit=False))()
+
