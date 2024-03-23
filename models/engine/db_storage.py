@@ -22,14 +22,22 @@ class DBStorage:
             Base.metadata.drop_all(self.__engine)
 
     def all(self, cls=None):
-        from models import base_model
-        objs = {}
+        """Query objects from database"""
+        cls_dict = {}
         if cls:
-            objs = {obj.id: obj for obj in self.__session.query(cls).all()}
+            if isinstance(cls, str):
+                cls = eval(cls)
+            objs = self.__session.query(cls).all()
+            for obj in objs:
+                key = "{}.{}".format(type(obj).__name__, obj.id)
+                cls_dict[key] = obj
         else:
-            for cls in base_model.Base.__subclasses__():
-                objs.update({obj.id: obj for obj in self.__session.query(cls).all()})
-        return objs
+            for cls in Base.__subclasses__():
+                objs = self.__session.query(cls).all()
+                for obj in objs:
+                    key = "{}.{}".format(type(obj).__name__, obj.id)
+                    cls_dict[key] = obj
+        return cls_dict
 
     def new(self, obj):
         self.__session.add(obj)
