@@ -19,7 +19,15 @@ sudo echo "<html>
     Holberton School
   </body>
 </html>" | sudo tee /data/web_static/releases/test/index.html
+
+# Create symbolic link, deleting and recreating if already exists
 sudo ln -sf /data/web_static/releases/test/ /data/web_static/current
+
+# Give ownership of /data/ to ubuntu user and group
 sudo chown -hR ubuntu:ubuntu /data/
-sudo sed -i '38i\\tlocation /hbnb_static/ {\n\t\talias /data/web_static/current/;\n\t}\n' /etc/nginx/sites-available/default
+
+# Update Nginx configuration
+sudo sed -i '38i\\tlocation /hbnb_static/ {\n\t\talias /data/web_static/current/;\n\tindex index.html index.htm;\n\t}\n' /etc/nginx/sites-available/default
+
+# Restart Nginx
 sudo service nginx start
