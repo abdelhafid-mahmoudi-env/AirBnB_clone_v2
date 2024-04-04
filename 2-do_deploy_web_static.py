@@ -1,38 +1,37 @@
 #!/usr/bin/python3
-"""
-Fabric script that distributes an archive to your web servers using my function do_deploy.
-"""
+"""Deploys an archive to web servers."""
 
-from fabric.api import *
+from fabric.api import put, run, env
 import os
 
-env.hosts = ['52.23.177.252', '18.204.7.7']
-env.user = 'ubuntu'  # Change to appropriate username
-
+# Set the environment hosts and user for deployment
+env.hosts = ["52.23.177.252", "18.204.7.7"]
+env.user = "ubuntu"
 
 def do_deploy(archive_path):
-    """Distributes an archive to your web servers."""
-    if not os.path.exists(archive_path):
+    """Deploys archive to servers after validating the path and extension."""
+    # Validate the archive path exists and has a .tgz extension
+    if not os.path.isfile(archive_path) or not archive_path.endswith('.tgz'):
         return False
 
     try:
-        archive_name = os.path.basename(archive_path)
-        archive_no_ext = os.path.splitext(archive_name)[0]
+        # Transfer the archive to the remote server
+        res = put(archive_path, "/tmp/")
+        if not res.succeeded:
+            return False
 
-        put(archive_path, "/tmp/")
-        run("mkdir -p /data/web_static/releases/{}/".format(archive_no_ext))
-        run("tar -xzf /tmp/{} -C /data/web_static/releases/{}/"
-            .format(archive_name, archive_no_ext))
-        run("rm /tmp/{}".format(archive_name))
-        run("mv /data/web_static/releases/{}/web_static/* /data/web_static/releases/{}/"
-            .format(archive_no_ext, archive_no_ext))
-        run("rm -rf /data/web_static/releases/{}/web_static"
-            .format(archive_no_ext))
+        basename = os.path.basename(archive_path)
+        name = basename[:-4]  # Remove .tgz extension
+        new_dir = f"/data/web_static/releases/{name}"
+
+        # Execute deployment steps
+        run(f"mkdir -p {new_dir}")
+        run(f"tar -xzf /tmp/{basename} -C {new_dir}")
+        run(f"rm /tmp/{basename}")
+        run(f"mv {new_dir}/web_static/* {new_dir}")
+        run(f"rm -rf {new_dir}/web_static")
         run("rm -rf /data/web_static/current")
-        run("ln -s /data/web_static/releases/{}/ /data/web_static/current"
-            .format(archive_no_ext))
-
-        print("New version deployed!")
-        return True
-    except Exception:
+        run(f"ln -s {new_dir} /data/web_static/current")
+    except Exception as e:
         return False
+    return True
