@@ -5,7 +5,8 @@ from fabric.api import env, put, run, show
 from os.path import exists
 
 env.hosts = ['52.23.177.252', '18.204.7.7']
-
+env.key_filename = '~/.ssh/school'
+env.user = 'ubuntu'
 
 def do_deploy(archive_path):
     """
@@ -31,5 +32,6 @@ def do_deploy(archive_path):
             "/data/web_static/current".format(foldername))
         print("New version deployed!")
         return True
-    except:
+    except Exception as e:
+        print("Error deploying:", e)
         return False
