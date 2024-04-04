@@ -4,7 +4,8 @@
 # Install Nginx if not already installed
 # Install Nginx if not already installed
 if ! command -v nginx &>/dev/null; then
-    sudo apt-get update
+    sudo apt-get -y update
+    sudo apt-get -y upgrade
     sudo apt-get install -y nginx
     sudo ufw allow 'Nginx HTTP'
 fi
@@ -31,7 +32,7 @@ echo "<html>
 sudo ln -sf /data/web_static/releases/test/ /data/web_static/current
 
 # Give ownership of /data/ to ubuntu user and group
-sudo chown -R ubuntu:ubuntu /data/
+sudo chown -hR ubuntu:ubuntu /data/
 
 # Update Nginx configuration
 config="location /hbnb_static { alias /data/web_static/current/; index index.html index.htm; }"
