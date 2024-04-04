@@ -8,11 +8,7 @@ if ! command -v nginx &>/dev/null; then
     sudo apt-get -y install nginx
 fi
 
-# Create necessary directories
-sudo mkdir -p /data/web_static/releases/test /data/web_static/shared /data/web_static/current
-
-# create file named index.html
-sudo touch /data/web_static/releases/test/index.html
+sudo mkdir -p /data/web_static/releases/test /data/web_static/shared
 echo "This is a test" | sudo tee /data/web_static/releases/test/index.html
 sudo ln -sf /data/web_static/releases/test/ /data/web_static/current
 sudo chown -hR ubuntu:ubuntu /data/
