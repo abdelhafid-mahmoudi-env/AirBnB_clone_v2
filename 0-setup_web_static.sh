@@ -2,7 +2,6 @@
 # This script sets up the web servers for deployment of web_static
 
 # Install Nginx if not already installed
-# Install Nginx if not already installed
 if ! command -v nginx &>/dev/null; then
     sudo apt-get -y update
     sudo apt-get -y upgrade
