@@ -1,11 +1,10 @@
 #!/usr/bin/python3
 """ Fabric script that distributes an archive to your web servers. """
 
-from fabric.api import env, put, run
+from fabric.api import env, put, run, show
 from os.path import exists
 
 env.hosts = ['52.23.177.252', '18.204.7.7']
-env.output['stdout'] = True
 
 
 def do_deploy(archive_path):
@@ -15,6 +14,7 @@ def do_deploy(archive_path):
     if not exists(archive_path):
         return False
     try:
+        show('stdout')
         put(archive_path, "/tmp/")
         filename = archive_path.split("/")[-1]
         foldername = filename.split(".")[0]
@@ -31,5 +31,5 @@ def do_deploy(archive_path):
             "/data/web_static/current".format(foldername))
         print("New version deployed!")
         return True
-    except Exception as e:
+    except:
         return False
