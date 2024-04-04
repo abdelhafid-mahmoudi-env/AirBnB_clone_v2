@@ -1,45 +1,28 @@
 # 101-setup_web_static.pp
-
-# Define class for setting up web_static
-class web_static_setup {
-
-  # Ensure the required directories are created
-  file { '/data':
-    ensure => 'directory',
-  }
-
-  file { '/data/web_static':
-    ensure => 'directory',
-  }
-
-  file { '/data/web_static/releases':
-    ensure => 'directory',
-  }
-
-  file { '/data/web_static/shared':
-    ensure => 'directory',
-  }
-
-  # Create a symbolic link for 'current'
-  file { '/data/web_static/current':
-    ensure  => 'link',
-    target  => '/data/web_static/releases/test',
-    require => File['/data/web_static'],
-  }
-
-  # Create index.html
-  file { '/data/web_static/releases/test/index.html':
-    ensure  => 'file',
-    content => '<html>
-  <head>
-  </head>
-  <body>
-    Holberton School
-  </body>
-</html>',
-    require => File['/data/web_static/releases/test'],
-  }
+exec { 'apt-get-update':
+  command => '/usr/bin/env apt-get -y update',
 }
-
-# Apply the class
-include web_static_setup
+-> exec {'nginx':
+  command => '/usr/bin/env apt-get -y install nginx',
+}
+-> exec {'test folder':
+  command => '/usr/bin/env mkdir -p /data/web_static/releases/test/',
+}
+-> exec {'shared folder':
+  command => '/usr/bin/env mkdir -p /data/web_static/shared/',
+}
+-> exec {'index':
+  command => '/usr/bin/env echo "Welcome to AirBnB" > /data/web_static/releases/test/index.html',
+}
+-> exec {'ln -s':
+  command => '/usr/bin/env ln -sf /data/web_static/releases/test /data/web_static/current',
+}
+-> exec {'nginx conf':
+  command => '/usr/bin/env sed -i "/listen 80 default_server/a location /hbnb_static/ { alias /data/web_static/current/;}" /etc/nginx/sites-available/default',
+}
+-> exec {'chown:':
+  command => '/usr/bin/env chown -R ubuntu:ubuntu /data',
+}
+-> exec {'service':
+  command => '/usr/bin/env service nginx restart',
+}
