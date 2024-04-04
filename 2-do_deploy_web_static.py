@@ -1,83 +1,52 @@
 #!/usr/bin/python3
-"""Fabric script (based on the file 1-pack_web_static.py) that distributes
-an archive to your web servers,using the function do_deploy
+"""
+Distributes an archive to my web servers,
+using the function do_deploy
 """
 from fabric.api import *
-from fabric.operations import put
 from datetime import datetime
 import os
 
 env.hosts = ['52.23.177.252', '18.204.7.7']
-env.key_filename = '~/.ssh/school'
 env.user = 'ubuntu'
 
 
 def do_pack():
-    """packages all contents from web_static into .tgz archive
-    """
-    n = datetime.now().strftime("%Y%m%d%H%M%S")
-    local('mkdir -p versions')
-    result = local('tar -cvf versions/web_static_{}.tgz web_static'
-                   .format(n))
-    if result.failed:
+    '''
+    Generates a tgz archive from the
+    contents of the web_static folder
+    '''
+    try:
+        local('mkdir -p versions')
+        datetime_format = '%Y%m%d%H%M%S'
+        archive_path = 'versions/web_static_{}.tgz'.format(
+            datetime.now().strftime(datetime_format))
+        local('tar -cvzf {} web_static'.format(archive_path))
+        print('web_static packed: {} -> {}'.format(archive_path,
+              os.path.getsize(archive_path)))
+    except:
         return None
-    else:
-        return result
 
 
 def do_deploy(archive_path):
-    """Deploys a static archive to my web servers"""
-
-    if not os.path.isfile(archive_path):
-        print('archive file does not exist...')
-        return False  # Returns False if the file at archive_path doesnt exist
+    '''
+    Deploy archive to web server
+    '''
+    if not os.path.exists(archive_path):
+        return False
+    file_name = archive_path.split('/')[1]
+    file_path = '/data/web_static/releases/'
+    releases_path = file_path + file_name[:-4]
     try:
-        archive = archive_path.split('/')[1]
-        no_archive_ext = archive.split('.')[0]
-    except Exception:
-        print('failed to get archive name from split...')
+        put(archive_path, '/tmp/')
+        run('mkdir -p {}'.format(releases_path))
+        run('tar -xzf /tmp/{} -C {}'.format(file_name, releases_path))
+        run('rm /tmp/{}'.format(file_name))
+        run('mv {}/web_static/* {}/'.format(releases_path, releases_path))
+        run('rm -rf {}/web_static'.format(releases_path))
+        run('rm -rf /data/web_static/current')
+        run('ln -s {} /data/web_static/current'.format(releases_path))
+        print('New version deployed!')
+        return True
+    except:
         return False
-
-    uploaded = put(archive_path, '/tmp/')
-    if uploaded.failed:
-        return False
-    Res = run('mkdir -p /data/web_static/releases/{}/'.format(no_archive_ext))
-    if Res.failed:
-        print('failed to create archive directory for relase...')
-        return False
-    Res = run('tar -C /data/web_static/releases/{} -xzf /tmp/{}'.format(
-               no_archive_ext, archive))
-    if Res.failed:
-        print('failed to untar archive...')
-        return False
-    Res = run('rm /tmp/{}'.format(archive))
-    if Res.failed:
-        print('failed to remove archive...')
-        return False
-    Res = run('mv /data/web_static/releases/{}/web_static/* \
-               /data/web_static/releases/{}'
-              .format(no_archive_ext, no_archive_ext))
-    if Res.failed:
-        print('failed to move extraction to proper directory...')
-        return False
-    Res = run('rm -rf /data/web_static/releases/{}/web_static'
-              .format(no_archive_ext))
-    if Res.failed:
-        print('failed to remove first copy of extraction after move...')
-        return False
-
-    # clean up old release and remove it.
-
-    Res = run('rm -rf /data/web_static/current')
-    if Res.failed:
-        print('failed to clean up old release...')
-        return False
-    Res = run('ln -sfn /data/web_static/releases/{} /data/web_static/current'
-              .format(no_archive_ext))
-    if Res.failed:
-        print('failed to create link to new release...')
-        return False
-
-    print('\nNew Version Successfuly Deployed!\n')
-
-    return True
