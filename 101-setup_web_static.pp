@@ -1,28 +1,33 @@
-# 101-setup_web_static.pp
-exec { 'apt-get-update':
-  command => '/usr/bin/env apt-get -y update',
+# Puppet manifest to setup web servers for deployment of web_static
+
+file { '/etc/nginx/sites-available/default':
+    ensure => file,
+    content => template('nginx-default.erb'),
+    require => Package['nginx'],
+    notify  => Service['nginx'],
 }
--> exec {'nginx':
-  command => '/usr/bin/env apt-get -y install nginx',
+
+file { '/data/web_static/releases/test/index.html':
+    ensure  => file,
+    content => "<html>
+  <head>
+  </head>
+  <body>
+    Holberton School
+  </body>
+</html>",
+    require => File['/data/web_static/releases/test'],
+    notify  => Service['nginx'],
 }
--> exec {'test folder':
-  command => '/usr/bin/env mkdir -p /data/web_static/releases/test/',
+
+file { '/data/web_static/current':
+    ensure => link,
+    target => '/data/web_static/releases/test',
+    require => File['/data/web_static/releases/test/index.html'],
+    notify  => Service['nginx'],
 }
--> exec {'shared folder':
-  command => '/usr/bin/env mkdir -p /data/web_static/shared/',
-}
--> exec {'index':
-  command => '/usr/bin/env echo "Welcome to AirBnB" > /data/web_static/releases/test/index.html',
-}
--> exec {'ln -s':
-  command => '/usr/bin/env ln -sf /data/web_static/releases/test /data/web_static/current',
-}
--> exec {'nginx conf':
-  command => '/usr/bin/env sed -i "/listen 80 default_server/a location /hbnb_static/ { alias /data/web_static/current/;}" /etc/nginx/sites-available/default',
-}
--> exec {'chown:':
-  command => '/usr/bin/env chown -R ubuntu:ubuntu /data',
-}
--> exec {'service':
-  command => '/usr/bin/env service nginx restart',
+
+exec { 'chown-data':
+    command => 'chown -R ubuntu:ubuntu /data/',
+    path    => ['/bin', '/usr/bin/'],
 }
