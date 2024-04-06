@@ -1,62 +1,58 @@
-exec {'nginx installation':
-  provider => shell,
-  command  => 'sudo apt-get -y install nginx',
+# 101-setup_web_static.pp
+
+# Ensure Nginx package is installed
+package { 'nginx':
+  ensure => installed,
 }
 
-exec {'update packages':
-  provider => shell,
-  command  => 'sudo apt-get -y update',
-  before   => Exec['start Nginx'],
+# Define directories
+file { '/data':
+  ensure => directory,
 }
 
-exec {'start Nginx':
-  provider => shell,
-  command  => 'sudo service nginx start',
-  require  => Exec['nginx installation'],
+file { '/data/web_static':
+  ensure => directory,
+  owner  => 'root',
+  group  => 'root',
 }
 
-exec {'create first directory':
-  provider => shell,
-  command  => 'sudo mkdir -p /data/web_static/releases/test/',
+file { '/data/web_static/releases':
+  ensure => directory,
+  owner  => 'root',
+  group  => 'root',
 }
 
-exec {'create second directory':
-  provider => shell,
-  command  => 'sudo mkdir -p /data/web_static/shared/',
+file { '/data/web_static/shared':
+  ensure => directory,
+  owner  => 'root',
+  group  => 'root',
 }
 
-exec {'content into html':
-  provider => shell,
-  command  => 'echo "Test" | sudo tee /data/web_static/releases/test/index.html',
+file { '/data/web_static/releases/test':
+  ensure => directory,
+  owner  => 'root',
+  group  => 'root',
 }
 
-exec {'symbolic link':
-  provider => shell,
-  command  => 'sudo ln -sf /data/web_static/releases/test/ /data/web_static/current',
-  require  => Exec['content into html'],
+# Create a fake HTML file for testing
+file { '/data/web_static/releases/test/index.html':
+  ensure  => file,
+  content => '<html><head></head><body>Holberton School</body></html>',
+  owner   => 'root',
+  group   => 'root',
 }
 
-exec {'put location':
-  provider => shell,
-  command  => 'sudo sed -i \'38i\\tlocation /hbnb_static/ {\n\t\talias /data/web_static/current/;\n\t\tautoindex off;\n\t}\n\' /etc/nginx/sites-available/default',
-  require  => Exec['symbolic link'],
+# Create a symbolic link
+file { '/data/web_static/current':
+  ensure  => link,
+  target  => '/data/web_static/releases/test',
+  owner   => 'root',
+  group   => 'root',
 }
 
-exec {'restart Nginx':
-  provider => shell,
-  command  => 'sudo service nginx restart',
-  require  => Exec['put location'],
-}
-
-exec {'create index.html':
-  provider => shell,
-  command  => 'echo "Hello, World!" | sudo tee /data/web_static/current/index.html',
-  require  => Exec['symbolic link'],
-}
-
-file {'/data/':
-  ensure  => directory,
-  owner   => 'ubuntu',
-  group   => 'ubuntu',
-  recurse => true,
+# Restart Nginx service
+service { 'nginx':
+  ensure    => running,
+  enable    => true,
+  subscribe => File['/data/web_static/current'],
 }
