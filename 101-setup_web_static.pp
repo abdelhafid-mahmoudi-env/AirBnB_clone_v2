@@ -1,15 +1,62 @@
-# a puppet version of out setup of nginx for web static
-exec { '/usr/bin/env apt-get -y update' : }
--> exec { '/usr/bin/env apt-get -y install nginx' : }
--> exec { '/usr/bin/env sed -i "/listen \[::\]:80 default_server/ a\\\trewrite ^/redirect_me https://www.youtube.com/watch?v=QH2-TGUlwu4 permanent;" /etc/nginx/sites-available/default' : }
--> exec { '/usr/bin/env sed -i "/listen \[::\]:80 default_server/ a\\\tadd_header X-Served-By \"\$HOSTNAME\";" /etc/nginx/sites-available/default' : }
--> exec { '/usr/bin/env sed -i "/redirect_me/ a\\\terror_page 404 /custom_404.html;" /etc/nginx/sites-available/default' : }
--> exec { '/usr/bin/env # echo "Ceci n\'est pas une page" > /var/www/html/custom_404.html' : }
--> exec { '/usr/bin/env service nginx start' : }
--> exec { '/usr/bin/env mkdir -p /data/web_static/releases/test/' : }
--> exec { '/usr/bin/env mkdir -p /data/web_static/shared/' : }
--> exec { '/usr/bin/env echo "simple content, to test your Nginx configuration" > /data/web_static/releases/test/index.html' : }
--> exec { '/usr/bin/env ln -sf /data/web_static/releases/test/ /data/web_static/current' : }
--> exec { '/usr/bin/env sed -i "/^\tlocation \/ {$/ i\\\tlocation /hbnb_static {\n\t\talias /data/web_static/current/;\n\t\tautoindex off;\n}" /etc/nginx/sites-available/default' : }
--> exec { '/usr/bin/env service nginx restart' : }
--> exec { '/usr/bin/env chown -R ubuntu:ubuntu /data/' : }
+# configure nginx server and add folders needed for deployment
+
+exec {'update packages':
+  provider => shell,
+  command  => 'sudo apt-get -y update',
+  before   => Exec['install Nginx'],
+}
+
+exec {'nginx installation':
+  provider => shell,
+  command  => 'sudo apt-get -y install nginx',
+  before   => Exec['start Nginx'],
+}
+
+exec {'start nginx':
+  provider => shell,
+  command  => 'sudo service nginx start',
+  before   => Exec['create first directory'],
+}
+
+exec {'create first directory':
+  provider => shell,
+  command  => 'sudo mkdir -p /data/web_static/releases/test/',
+  before   => Exec['create second directory'],
+}
+
+exec {'create second directory':
+  provider => shell,
+  command  => 'sudo mkdir -p /data/web_static/shared/',
+  before   => Exec['content into html'],
+}
+
+exec {'content into html':
+  provider => shell,
+  command  => 'echo "Test" | sudo tee /data/web_static/releases/test/index.html',
+  before   => Exec['symbolic link'],
+}
+
+exec {'symbolic link':
+  provider => shell,
+  command  => 'sudo ln -sf /data/web_static/releases/test/ /data/web_static/current',
+  before   => Exec['put location'],
+}
+
+exec {'put location':
+  provider => shell,
+  command  => 'sudo sed -i \'38i\\tlocation /hbnb_static/ {\n\t\talias /data/web_static/current/;\n\t\tautoindex off;\n\t}\n\' /etc/nginx/sites-available/default',
+  before   => Exec['restart Nginx'],
+}
+
+exec {'restart Nginx':
+  provider => shell,
+  command  => 'sudo service nginx restart',
+  before   => File['/data/']
+}
+
+file {'/data/':
+  ensure  => directory,
+  owner   => 'ubuntu',
+  group   => 'ubuntu',
+  recurse => true,
+}
