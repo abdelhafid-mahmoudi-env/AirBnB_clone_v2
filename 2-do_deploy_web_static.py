@@ -20,13 +20,11 @@ def do_deploy(archive_path):
 
     put(local_path=archive_path, remote_path="/tmp/")
     run("mkdir -p /data/web_static/releases/{}".format(rname))
-    run("tar -xzf /tmp/{} \
-        -C /data/web_static/releases/{}".format(aname, rname))
+    run("tar -xzf /tmp/{} -C /data/web_static/releases/{}/".format(aname, rname))
     run("rm /tmp/{}".format(aname))
     run("rm -rf /data/web_static/current")
-    run("ln -fs /data/web_static/releases/{}/ \
-        /data/web_static/current".format(rname))
-    run("mv /data/web_static/current/web_static/* /data/web_static/current/")
-    run("rm -rf /data/web_static/curren/web_static")
+    run("ln -s /data/web_static/releases/{}/ /data/web_static/current".format(rname))
+    run("rsync -av /data/web_static/current/web_static/* /data/web_static/current/")
+    run("rm -rf /data/web_static/current/web_static")
 
     return True
