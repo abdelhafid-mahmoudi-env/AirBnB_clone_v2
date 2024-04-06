@@ -48,6 +48,12 @@ exec {'restart Nginx':
   require  => Exec['put location'],
 }
 
+exec {'create index.html':
+  provider => shell,
+  command  => 'echo "Hello, World!" | sudo tee /data/web_static/current/index.html',
+  require  => Exec['symbolic link'],
+}
+
 file {'/data/':
   ensure  => directory,
   owner   => 'ubuntu',
