@@ -2,7 +2,6 @@
 """ a module to push a package to servers and deploy """
 import os
 from fabric.api import put, env, run
-
 env.hosts = ['52.23.177.252', '18.204.7.7']
 env.user = "ubuntu"
 
