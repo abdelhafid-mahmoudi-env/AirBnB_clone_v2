@@ -2,14 +2,16 @@
 """ a module to push a package to servers and deploy """
 import os
 from fabric.api import put, env, run
+
+
 env.hosts = ['52.23.177.252', '18.204.7.7']
+
 env.user = "ubuntu"
 
 
 def do_deploy(archive_path):
     """ deploy package """
     if archive_path is None or not os.path.isfile(archive_path):
-        print("NOT PATH")
         return False
 
     aname = os.path.basename(archive_path)
