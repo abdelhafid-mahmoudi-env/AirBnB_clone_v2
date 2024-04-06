@@ -1,13 +1,92 @@
-exec { '/usr/bin/env apt-get -y update': }
--> exec { '/usr/bin/env apt-get -y install nginx': }
--> exec { '/usr/bin/env sed -i "/listen \[::\]:80 default_server/ a\\rewrite ^/redirect_me https://www.youtube.com/watch?v=QH2-TGUlwu4 permanent;" /etc/nginx/sites-available/default': }
--> exec { '/usr/bin/env sed -i "/listen \[::\]:80 default_server/ a\\add_header X-Served-By \"$HOSTNAME\";" /etc/nginx/sites-available/default': }
--> exec { '/usr/bin/env sed -i "/redirect_me/ a\\error_page 404 /custom_404.html;" /etc/nginx/sites-available/default': }
--> exec { '/usr/bin/env # echo "Ceci n\'est pas une page" > /var/www/html/custom_404.html': }
--> exec { '/usr/bin/env mkdir -p /data/web_static/releases/test/': }
--> exec { '/usr/bin/env mkdir -p /data/web_static/shared/': }
--> exec { '/usr/bin/env echo "simple content, to test your Nginx configuration" > /data/web_static/releases/test/index.html': }
--> exec { '/usr/bin/env ln -sf /data/web_static/releases/test/ /data/web_static/current': }
--> exec { '/usr/bin/env sed -i "/^\tlocation \/ {$/ i\\location /hbnb_static {\n\talias /data/web_static/current/;\n\tautoindex off;\n}" /etc/nginx/sites-available/default': }
--> exec { '/usr/bin/env systemctl restart nginx': }
--> exec { '/usr/bin/env chown -R ubuntu:ubuntu /data/': }
+# Configures a web server for deployment of web_static.
+
+# Nginx configuration file
+$nginx_conf = "server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+    add_header X-Served-By ${hostname};
+    root   /var/www/html;
+    index index.html index.htm index.nginx-debian.html;
+    server_name _;
+    location / {
+        try_files $uri $uri/ =404;
+    }
+    location /hbnb_static {
+        alias /data/web_static/current;
+        index index.html index.htm index.nginx-debian.html;
+    }
+    location /redirect_me {
+    	return 301 https://www.youtube.com/watch?v=QH2-TGUlwu4 permanent;
+    }
+    error_page 404 /404.html;
+    location /404 {
+        root /var/www/html;
+        internal;
+    }
+}"
+
+package { 'nginx':
+  ensure   => 'present',
+  provider => 'apt'
+} ->
+
+file { '/data':
+  ensure  => 'directory'
+} ->
+
+file { '/data/web_static':
+  ensure => 'directory'
+} ->
+
+file { '/data/web_static/releases':
+  ensure => 'directory'
+} ->
+
+file { '/data/web_static/releases/test':
+  ensure => 'directory'
+} ->
+
+file { '/data/web_static/shared':
+ensure => 'directory'
+  } ->
+
+file { '/data/web_static/releases/test/index.html':
+  ensure  => 'present',
+  content => "Holberton School Puppet\n"
+} ->
+
+file { '/data/web_static/current':
+  ensure => 'link',
+  target => '/data/web_static/releases/test'
+} ->
+
+exec { 'chown -R ubuntu:ubuntu /data/':
+  path => '/usr/bin/:/usr/local/bin/:/bin/'
+}
+
+file { '/var/www':
+  ensure => 'directory'
+} ->
+
+file { '/var/www/html':
+  ensure => 'directory'
+} ->
+
+file { '/var/www/html/index.html':
+  ensure  => 'present',
+  content => "Holberton School Nginx\n"
+} ->
+
+file { '/var/www/html/404.html':
+  ensure  => 'present',
+  content => "Ceci n'est pas une page\n"
+} ->
+
+file { '/etc/nginx/sites-available/default':
+  ensure  => 'present',
+  content => $nginx_conf
+} ->
+
+exec { 'nginx restart':
+  path => '/etc/init.d/'
+}
