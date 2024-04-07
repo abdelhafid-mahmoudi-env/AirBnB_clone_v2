@@ -5,9 +5,6 @@ from fabric.api import put, env, run, local
 from datetime import datetime
 import os
 
-
-archive = None
-
 env.hosts = ["52.23.177.252", "18.204.7.7"]
 
 env.user = "ubuntu"
@@ -47,12 +44,9 @@ def do_deploy(archive_path):
     return True
 
 
+archive = do_pack()
+
+
 def deploy():
-    global archive
-    archive = do_pack()
-    if archive is None:
-        archive = do_pack()
-    if archive is None:
-        return False
     deploythis = do_deploy(archive)
     return deploythis
