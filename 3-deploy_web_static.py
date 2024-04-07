@@ -7,7 +7,7 @@ from fabric.operations import run, put, sudo
 from datetime import date
 
 
-env.hosts = ["66.70.184.210", "142.44.164.128"]
+env.hosts = ["52.23.177.252", "18.204.7.7"]
 
 archive = None
 
