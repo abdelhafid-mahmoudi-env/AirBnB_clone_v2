@@ -5,19 +5,21 @@ from fabric.operations import run, put, sudo, local
 from datetime import datetime
 import os
 
-env.hosts = ["52.23.177.252", "18.204.7.7"]
-created_path = None
+
+env.hosts = ['52.23.177.252', '18.204.7.7']
+
+env.user = "ubuntu"
 
 
 def do_pack():
     """generates a .tgz archine from contents of web_static"""
-    time = datetime.utcnow().strftime('%Y%m%d%H%M%S')
-    file_name = "versions/web_static_{}.tgz".format(time)
+    now = datetime.utcnow().strftime('%Y%m%d%H%M%S')
+    filename = "versions/web_static_{}.tgz".format(now)
     try:
         local("mkdir -p ./versions")
         local("tar -cvzf {} web_static"
-              .format(file_name))
-        return file_name
+              .format(filename))
+        return filename
     except Exception as e:
         return None
 
@@ -53,9 +55,9 @@ def deploy():
     """
         deploy function that creates/distributes an archive
     """
-    global created_path
-    if created_path is None:
-        created_path = do_pack()
-    if created_path is None:
+    global package
+    if package is None:
+        package = do_pack()
+    if package is None:
         return False
-    return do_deploy(created_path)
+    return do_deploy(package)
