@@ -6,12 +6,10 @@ to web servers defined in the 'env.hosts' list. It creates a .tgz archive
 of the web_static folder using the 'do_pack' function and deploys it to the
 servers using the 'do_deploy' and 'deploy' functions.
 """
-
 import os.path
 from fabric.api import put, env, run, local
 from datetime import datetime
 import os
-
 env.hosts = ["52.23.177.252", "18.204.7.7"]
 env.user = "ubuntu"
 
