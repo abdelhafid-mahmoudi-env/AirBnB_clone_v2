@@ -16,7 +16,7 @@ $nginx_conf = "server {
         index index.html index.htm index.nginx-debian.html;
     }
     location /redirect_me {
-    	return 301 https://www.youtube.com/watch?v=QH2-TGUlwu4 permanent;
+    	return 301 https://www.youtube.com/watch?v=QH2-TGUlwu4;
     }
     error_page 404 /404.html;
     location /404 {
