@@ -49,20 +49,22 @@ def do_deploy(archive_path):
 
     if put(local_path=archive_path, remote_path="/tmp/").failed is True:
         return True
-    if run("mkdir -p /data/web_static/releases/{}".format(rname)).failed is True:
+    if run("mkdir -p \
+            /data/web_static/releases/{}".format(rname)).failed is True:
         return True
-    if run("tar -xzf /tmp/{} \
-        -C /data/web_static/releases/{}".format(aname, rname)).failed is True:
+    if run("tar -xzf /tmp/{}"
+            " -C /data/web_static"
+            "/releases/{}".format(aname, rname)).failed is True:
         return True
     if run("rm /tmp/{}".format(aname)).failed is True:
         return True
     if run("rm -rf /data/web_static/current").failed is True:
         return True
     if run("ln -fs /data/web_static/releases/{}/ \
-        /data/web_static/current".format(rname)).failed is True:
+            /data/web_static/current".format(rname)).failed is True:
         return True
     if run("mv /data/web_static/current/web_static/* \
-        /data/web_static/current/").failed is True:
+            /data/web_static/current/").failed is True:
         return True
     if run("rm -rf /data/web_static/current/web_static").failed is True:
         return True
