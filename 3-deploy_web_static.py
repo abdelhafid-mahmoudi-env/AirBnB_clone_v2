@@ -1,13 +1,17 @@
 #!/usr/bin/python3
 """deploy a compressed version of a web_static folder to web servers"""
+
 import os.path
-from fabric.api import put, env, run, local
+from fabric.api import put, env, run, local, runs_once
 from datetime import datetime
 import os
+
+
 env.hosts = ["52.23.177.252", "18.204.7.7"]
 env.user = "ubuntu"
 
 
+@runs_once
 def do_pack():
     """Generates a .tgz archive from the contents of the web_static folder."""
     now = datetime.now().strftime("%Y%m%d%H%M%S")
@@ -29,7 +33,7 @@ def do_deploy(archive_path):
         return False
 
     aname = os.path.basename(archive_path)
-    rname = aname.split(".")[0]
+    rname = aname.replace(".tgz", "")
     vmkdir = "mkdir -p /data/web_static/releases/{}/"
     vtar = "tar -xzf /tmp/{} -C /data/web_static/releases/{}/"
     vrm = "rm /tmp/{}"
@@ -59,12 +63,9 @@ def do_deploy(archive_path):
     return True
 
 
-archive = do_pack()
-
-
 def deploy():
     """Deploy the latest version of the web_static folder to servers."""
-    deployed = do_deploy(archive)
-    if deployed is None:
-        return False
-    return (deployed)
+    archive = do_pack()
+    if do_deploy(archive):
+        return archive
+    return False
