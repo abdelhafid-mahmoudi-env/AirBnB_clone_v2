@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 """
-Deletes out-of-date archives,
-using the function do_clean
+Script for automated cleanup of obsolete archives,
+utilizing the do_clean function
 """
 from fabric.api import *
 from datetime import datetime
@@ -12,49 +12,49 @@ env.user = 'ubuntu'
 
 
 def deploy():
-    ''' Deploys archive '''
-    archive_path = do_pack()
-    if not archive_path:
+    """ Deploys the latest archive to the web server """
+    archive = do_pack()
+    if not archive:
         return False
-    return do_deploy(archive_path)
+    return do_deploy(archive)
 
 
 def do_pack():
-    '''
-    Generates a tgz archive from the
-    contents of the web_static folder
-    '''
+    """
+    Generates a .tgz archive from the contents
+    of the web_static folder
+    """
     try:
         local('mkdir -p versions')
-        datetime_format = '%Y%m%d%H%M%S'
-        archive_path = 'versions/web_static_{}.tgz'.format(
-            datetime.now().strftime(datetime_format))
-        local('tar -cvzf {} web_static'.format(archive_path))
-        print('web_static packed: {} -> {}'.format(archive_path,
-              os.path.getsize(archive_path)))
-        return archive_path
+        now = '%Y%m%d%H%M%S'
+        archive = 'versions/web_static_{}.tgz'.format(
+            datetime.now().strftime(now))
+        local('tar -cvzf {} web_static'.format(archive))
+        print('web_static packed: {} -> {}'.format(archive,
+              os.path.getsize(archive)))
+        return archive
     except Exception:
         return None
 
 
 def do_deploy(archive_path):
-    '''
-    Deploy archive to web server
-    '''
+    """
+    Deploy the specified archive to the web server
+    """
     if not os.path.exists(archive_path):
         return False
-    file_name = archive_path.split('/')[1]
-    file_path = '/data/web_static/releases/'
-    releases_path = file_path + file_name[:-4]
+    fname = archive_path.split('/')[1]
+    fpath = '/data/web_static/releases/'
+    releasespath = fpath + fname[:-4]
     try:
         put(archive_path, '/tmp/')
-        run('mkdir -p {}'.format(releases_path))
-        run('tar -xzf /tmp/{} -C {}'.format(file_name, releases_path))
-        run('rm /tmp/{}'.format(file_name))
-        run('mv {}/web_static/* {}/'.format(releases_path, releases_path))
-        run('rm -rf {}/web_static'.format(releases_path))
+        run('mkdir -p {}'.format(releasespath))
+        run('tar -xzf /tmp/{} -C {}'.format(fname, releasespath))
+        run('rm /tmp/{}'.format(fname))
+        run('mv {}/web_static/* {}/'.format(releasespath, releasespath))
+        run('rm -rf {}/web_static'.format(releasespath))
         run('rm -rf /data/web_static/current')
-        run('ln -s {} /data/web_static/current'.format(releases_path))
+        run('ln -s {} /data/web_static/current'.format(releasespath))
         print('New version deployed!')
         return True
     except Exception:
@@ -62,15 +62,17 @@ def do_deploy(archive_path):
 
 
 def do_clean(number=0):
-    ''' Removes out of date archives locally and remotely '''
-    number = int(number)
-    if number == 0:
-        number = 2
+    """
+    Removes obsolete archives both locally and remotely
+    """
+    counter = int(number)
+    if counter == 0:
+        counter = 2
     else:
-        number += 1
+        counter += 1
 
     local('cd versions; ls -t | tail -n +{} | xargs rm -rf'
-          .format(number))
-    releases_path = '/data/web_static/releases'
+          .format(counter))
+    releasespath = '/data/web_static/releases'
     run('cd {}; ls -t | tail -n +{} | xargs rm -rf'
-        .format(releases_path, number))
+        .format(releasespath, counter))
