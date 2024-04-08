@@ -40,21 +40,21 @@ def do_deploy(archive_path):
     vln = "ln -s /data/web_static/releases/{}/ /data/web_static/current"
 
     if put(local_path=archive_path, remote_path="/tmp/").failed is True:
-        return True
+        return False
     if run(vmkdir.format(rname)).failed is True:
-        return True
+        return False
     if run(vtar.format(aname, rname)).failed is True:
-        return True
+        return False
     if run(vrm.format(aname)).failed is True:
-        return True
+        return False
     if run(vmv.format(rname, rname)).failed is True:
-        return True
+        return False
     if run(vrm1.format(rname)).failed is True:
-        return True
+        return False
     if run(vrm2).failed is True:
-        return True
+        return False
     if run(vln.format(rname)).failed is True:
-        return True
+        return False
     print("New version deployed!")
     return True
 
