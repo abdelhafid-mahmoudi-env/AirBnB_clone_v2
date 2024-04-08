@@ -17,10 +17,11 @@ def do_pack():
         now = datetime.now().strftime("%Y%m%d%H%M%S")
         archive_path = "versions/web_static_{}.tgz".format(now)
         msg = "web_static packed: {} -> {}Bytes"
+        html = "<html><head></head><body>my_index.html</body></html>"
         print("Packing web_static to versions/web_static_{}.tgz".format(now))
         if isdir("versions") is False:
             local("mkdir -p versions")
-        local("echo '<html><head></head><body>my_index.html</body></html>' > web_static/my_index.html")
+        local("echo '{}' > web_static/my_index.html".format(html))
         local("tar -czvf {} web_static".format(archive_path))
         print(msg.format(archive_path, getsize(archive_path)))
         return archive_path
