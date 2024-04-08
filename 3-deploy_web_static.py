@@ -33,7 +33,7 @@ def do_deploy(archive_path):
         return False
 
     aname = os.path.basename(archive_path)
-    rname = aname.replace(".tgz", "")
+    rname = aname.split(".")[0]
     vmkdir = "mkdir -p /data/web_static/releases/{}/"
     vtar = "tar -xzf /tmp/{} -C /data/web_static/releases/{}/"
     vrm = "rm /tmp/{}"
