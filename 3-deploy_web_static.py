@@ -61,4 +61,6 @@ def deploy():
     archive = do_pack()
     if archive is None:
         return False
-    return do_deploy(archive)
+    if not do_deploy(archive):
+        return False
+    return True
