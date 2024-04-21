@@ -13,7 +13,17 @@ class State(BaseModel, Base):
         name = Column(String(128), nullable=False)
         cities = relationship("City", backref="state")
     else:
-        name = ""
+        @property
+        def cities(self):
+            """
+            Returns the list of City objects from storage linked to the current State
+            """
+            from models import storage
+            from models.city import City
+
+            all_cities = storage.all(City)
+            state_cities = [city for city in all_cities.values() if city.state_id == self.id]
+            return state_cities
 
     def __init__(self, *args, **kwargs):
         """initializes state"""
