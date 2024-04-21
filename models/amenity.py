@@ -8,7 +8,7 @@ from sqlalchemy import Column, String
 
 class Amenity(BaseModel, Base):
     __tablename__ = "amenities"
-    
+
     if my_enviroment == "db":
         name = Column(String(128), nullable=False)
     else:
