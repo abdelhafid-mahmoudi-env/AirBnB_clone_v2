@@ -10,7 +10,8 @@ app = Flask(__name__)
 @app.route('/states_list', strict_slashes=False)
 def states_list():
     """Displays a HTML page with a list of states"""
-    states = storage.all(State).values()
+    states = list(storage.all(State).values())
+    states.sort(key=lambda state: state.name)
     return render_template('7-states_list.html', states=states)
 
 
@@ -21,4 +22,5 @@ def teardown(exception):
 
 
 if __name__ == '__main__':
+    storage.reload()
     app.run(host='0.0.0.0', port=5000)
