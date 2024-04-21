@@ -15,19 +15,9 @@ class State(BaseModel, Base):
     else:
         @property
         def cities(self):
-            """
-            Returns the list of City objects from storage
-            linked to the current State
-            """
-            from models import storage
-            from models.city import City
-
-            all_cities = storage.all(City)
-            state_cities = [
-                    city for city in all_cities.values()
-                    if city.state_id == self.id
-            ]
-            return state_cities
+            """ Gets a list of all cities in state """
+            return [city for city in models.storage.all(City).values() if
+                    self.id == city.state_id]
 
     def __init__(self, *args, **kwargs):
         """initializes state"""
