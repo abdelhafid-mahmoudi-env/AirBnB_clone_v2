@@ -16,7 +16,8 @@ class State(BaseModel, Base):
         @property
         def cities(self):
             """
-            Returns the list of City objects from storage linked to the current State
+            Returns the list of City objects from storage
+            linked to the current State
             """
             from models import storage
             from models.city import City
