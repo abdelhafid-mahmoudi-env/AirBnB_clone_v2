@@ -47,16 +47,16 @@ class FileStorage:
         from models.review import Review
 
         classes = {
-                    'BaseModel': BaseModel, 'User': User, 'Place': Place,
-                    'State': State, 'City': City, 'Amenity': Amenity,
-                    'Review': Review
-                  }
+            'BaseModel': BaseModel, 'User': User, 'Place': Place,
+            'State': State, 'City': City, 'Amenity': Amenity,
+            'Review': Review
+        }
         try:
             temp = {}
             with open(FileStorage.__file_path, 'r') as f:
                 temp = json.load(f)
                 for key, val in temp.items():
-                        self.all()[key] = classes[val['__class__']](**val)
+                    self.all()[key] = classes[val['__class__']](**val)
         except FileNotFoundError:
             pass
 
@@ -68,8 +68,8 @@ class FileStorage:
             obj (BaseModel): The object to be deleted from storage.
 
         Note:
-            If the object does not exist in the storage dictionary or if obj is None,
-            the method gracefully handles the deletion without raising any exceptions.
+            If the object does not exist in the storage dictionary,
+            the method gracefully handles the deletion.
         """
         try:
             del self.__objects["{}.{}".format(type(obj).__name__, obj.id)]
