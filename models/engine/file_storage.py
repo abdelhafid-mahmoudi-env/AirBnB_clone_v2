@@ -60,10 +60,6 @@ class FileStorage:
         except FileNotFoundError:
             pass
 
-    def close(self):
-        """Close the file storage"""
-        self.reload()
-
     def delete(self, obj=None):
         """
         Deletes a specified object from the storage dictionary if it exists.
@@ -79,3 +75,7 @@ class FileStorage:
             del self.__objects["{}.{}".format(type(obj).__name__, obj.id)]
         except (AttributeError, KeyError):
             pass
+
+    def close(self):
+        """Close the file storage"""
+        self.reload()

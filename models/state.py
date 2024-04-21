@@ -22,13 +22,13 @@ class State(BaseModel, Base):
     if my_enviroment != "db":
         @property
         def cities(self):
-            """Returns the list of City object"""
+            """Returns the list of City objects"""
             from models import storage
             from models.city import City
 
             all_cities = storage.all(City)
             state_cities = [
-                    city for city in all_cities.values()
-                    if city.state_id == self.id
+                city for city in all_cities.values()
+                if city.state_id == self.id
             ]
             return state_cities
