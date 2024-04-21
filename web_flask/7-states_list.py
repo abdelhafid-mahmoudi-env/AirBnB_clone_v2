@@ -8,7 +8,7 @@ app = Flask(__name__)
 
 
 @app.teardown_appcontext
-def teardown(argument):
+def closedb(argument):
     """ to close a database session"""
     storage.close()
 
