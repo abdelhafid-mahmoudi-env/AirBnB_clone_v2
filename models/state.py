@@ -23,8 +23,12 @@ class State(BaseModel, Base):
         @property
         def cities(self):
             """Returns the list of City objects"""
-            city_list = []
-            for city in list(models.storage.all(City).values()):
-                if city.state_id == self.id:
-                    city_list.append(city)
-            return city_list
+            from models import storage
+            from models.city import City
+
+            all_cities = storage.all(City)
+            state_cities = [
+                city for city in all_cities.values()
+                if city.state_id == self.id
+            ]
+            return state_cities
