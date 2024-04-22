@@ -6,6 +6,7 @@ Flask web application that use storage for fetching data from storage engine
 from flask import Flask
 from flask import render_template
 from models import storage
+from models.state import State
 
 
 app = Flask(__name__)
@@ -15,7 +16,7 @@ app.url_map.strict_slashes = False
 @app.route("/states_list", strict_slashes=False)
 def display_states():
     """ displays a HTML page of states from storage"""
-    states = storage.all("State").values()
+    states = sorted(storage.all(State).values(), key=lambda x: x.name)
     return render_template('7-states_list.html', states=states)
 
 
